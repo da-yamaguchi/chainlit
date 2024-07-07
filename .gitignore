@@ -12,6 +12,7 @@ poetry.lock
 venv
 .venv
 .DS_Store
+chainlit_env
 
 .chainlit
 !cypress/e2e/**/*/.chainlit/*
