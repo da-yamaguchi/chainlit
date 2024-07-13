@@ -12,7 +12,7 @@ def generate_message(
         messages: List[Dict],
         # model_name: str = "gpt-35-turbo-16k",
         model_name: str = os.environ["AZURE_OPENAI_DEPLOY_NAME"],
-        max_tokens: int = 800,
+        max_tokens: int = 4000,
         temperature: float = 0.0
     ):
     

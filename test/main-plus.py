@@ -29,12 +29,12 @@ async def chat_profile():
         cl.ChatProfile(
             name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
             markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
-            icon="icon画像のURLを指定します。",
+            # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
             name=os.environ["AZURE_GPT_4O_NAME"],
             markdown_description="The underlying LLM model is **gpt-4**.",
-            icon="icon画像のURLを指定します。",
+            # icon="icon画像のURLを指定します。",
         ),
     ]
 
@@ -44,29 +44,29 @@ async def start():
     Chatを開始したタイミングで一度だけ呼ばれる。
     """
     
-    # パラメータの設定項目を定義する
-    settings = await cl.ChatSettings(
-        [
-            Slider(
-                id="max_tokens",
-                label="最大応答",
-                initial=800,
-                min=1,
-                max=4000,
-                step=1
-            ),
-            Slider(
-                id="temperature",
-                label="温度パパラメータ",
-                initial=0,
-                min=0,
-                max=1,
-                step=0.01
-            )
-        ]
-    ).send()
+    # # パラメータの設定項目を定義する
+    # settings = await cl.ChatSettings(
+    #     [
+    #         Slider(
+    #             id="max_tokens",
+    #             label="最大応答",
+    #             initial=800,
+    #             min=1,
+    #             max=4000,
+    #             step=1
+    #         ),
+    #         Slider(
+    #             id="temperature",
+    #             label="温度パラメータ",
+    #             initial=0,
+    #             min=0,
+    #             max=1,
+    #             step=0.01
+    #         )
+    #     ]
+    # ).send()
 
-    await update_settings(settings)
+    # await update_settings(settings)
     
 @cl.on_settings_update
 async def update_settings(settings):
