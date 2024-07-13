@@ -2,10 +2,14 @@
 使用するモデルやパラメータの調整を可能にしたバージョン
 """
 
+import os
 import chainlit as cl
 from chainlit.input_widget import Slider
+from dotenv import load_dotenv
 
 from llm_response import generate_message, SYSTEM_CONTENT
+
+load_dotenv()
 
 # 会話の履歴を格納する変数
 message_history = [
@@ -23,12 +27,12 @@ async def chat_profile():
     
     return [
         cl.ChatProfile(
-            name="gpt-35-turbo-16k",
+            name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
             markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
             icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
-            name="gpt-4o",  ## ★envに追い出すべきかも
+            name=os.environ["AZURE_GPT_4O_NAME"],
             markdown_description="The underlying LLM model is **gpt-4**.",
             icon="icon画像のURLを指定します。",
         ),
