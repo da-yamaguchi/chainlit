@@ -11,6 +11,9 @@ from llm_response import generate_message, SYSTEM_CONTENT
 
 load_dotenv()
 
+# ファイル添付機能を非表示に
+cl.config.features.spontaneous_file_upload = None
+
 # 会話の履歴を格納する変数
 message_history = [
     {
@@ -43,7 +46,8 @@ async def start():
     """
     Chatを開始したタイミングで一度だけ呼ばれる。
     """
-    
+    print(cl.config.features.spontaneous_file_upload)
+
     # # パラメータの設定項目を定義する
     # settings = await cl.ChatSettings(
     #     [
@@ -95,7 +99,8 @@ async def main(message: cl.Message):
     )
     
     await cl.Message(
-        content=response["content"]
+        content=response["content"],
+
     ).send()
     
     message_history.append({
