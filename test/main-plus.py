@@ -107,3 +107,15 @@ async def main(message: cl.Message):
         "role":"assistant",
         "content":response["content"]
     })
+
+
+## ログイン認証機能 ここから
+# USERNAME = os.getenv("USERNAME")
+# PASSWORD = os.getenv("PASSWORD")
+
+# @cl.password_auth_callback
+# def auth_callback(username: str, password: str):
+#     print("auth_callback")
+#     return username == USERNAME and password == PASSWORD
+
+## ログイン認証機能 ここまで
