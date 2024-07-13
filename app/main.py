@@ -94,8 +94,8 @@ async def main(message: cl.Message):
     response = generate_message(
         message_history,
         model_name=chat_profile,
-        max_tokens=int(llm_parameter["max_tokens"]),
-        temperature=llm_parameter["temperature"]
+        # max_tokens=int(llm_parameter["max_tokens"]),
+        # temperature=llm_parameter["temperature"]
     )
     
     await cl.Message(

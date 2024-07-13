@@ -28,8 +28,8 @@ def generate_message(
     chat_completion = client.chat.completions.create(
         messages=messages,
         model=model_name,
-        # max_tokens=max_tokens,
-        # temperature=temperature,
+        max_tokens=max_tokens,
+        temperature=temperature,
     )
     
     return {
