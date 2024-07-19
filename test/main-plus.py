@@ -8,6 +8,7 @@ from chainlit.input_widget import Slider
 from dotenv import load_dotenv
 
 from llm_response import generate_message, SYSTEM_CONTENT
+from vector_search import vector_search
 
 load_dotenv()
 
@@ -40,6 +41,10 @@ async def chat_profile():
             # markdown_description="The underlying LLM model is **gpt-4**.",
             markdown_description="基盤となるLLMモデルはAzureOpenAIの**gpt-4**です。",
             # icon="icon画像のURLを指定します。",
+        ),
+        cl.ChatProfile(
+            name="VECTOR_SEARCH",
+            markdown_description="Azure Cosmos DBのベクトル検索を使用します。",
         ),
     ]
 
@@ -84,30 +89,33 @@ async def main(message: cl.Message):
     """
     ユーザーからメッセージが送られたら実行される関数
     """
-    llm_parameter = cl.user_session.get("llm_parameters")
     chat_profile = cl.user_session.get("chat_profile")
     message_history.append({
         "role":"user",
         "content":message.content
     })
     
-    response = generate_message(
-        message_history,
-        model_name=chat_profile,
-        # max_tokens=int(llm_parameter["max_tokens"]),
-        # temperature=llm_parameter["temperature"]
-    )
+    if chat_profile == "VECTOR_SEARCH":
+        results = vector_search(message.content)
+        response_content = ""
+        for result in results:
+            # response_content += f"Score: {result['similarityScore']}\n"
+            # response_content += f"Title: {result['document']['title']}\n"
+            # response_content += f"Content: {result['document']['content']}\n\n"
+            response_content += f"{result['document']['content']}\n\n"
+    else:
+        response = generate_message(
+            message_history,
+            model_name=chat_profile,
+        )
+        response_content = response["content"]
     
-    await cl.Message(
-        content=response["content"],
-
-    ).send()
+    await cl.Message(content=response_content).send()
     
     message_history.append({
         "role":"assistant",
-        "content":response["content"]
+        "content":response_content
     })
-
 
 ## ログイン認証機能 ここから
 # USERNAME = os.getenv("USERNAME")
