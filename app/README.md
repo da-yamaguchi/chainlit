@@ -1,3 +1,17 @@
+# 社内chainlit
+
+### 仮想の有効化
+
+```bash
+chainlit_env\Scripts\activate
+```
+
+### アプリ実行
+
+```bash
+chainlit run .\main.py 
+```
+
 # Systemdサービスファイルの作成と設定
 
 仮想環境を使用するようにSystemdサービスを設定します。
