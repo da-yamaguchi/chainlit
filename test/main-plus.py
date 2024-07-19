@@ -8,7 +8,7 @@ from chainlit.input_widget import Slider
 from dotenv import load_dotenv
 
 from llm_response import generate_message, SYSTEM_CONTENT
-from vector_search import vector_search
+from vector_search import vector_search, insert_log
 
 load_dotenv()
 
@@ -96,13 +96,17 @@ async def main(message: cl.Message):
     })
     
     if chat_profile == "VECTOR_SEARCH":
-        results = vector_search(message.content)
+        # results = vector_search(message.content)
+        results = list(vector_search(message.content))  # リストに変換
         response_content = ""
         for result in results:
             # response_content += f"Score: {result['similarityScore']}\n"
             # response_content += f"Title: {result['document']['title']}\n"
             # response_content += f"Content: {result['document']['content']}\n\n"
             response_content += f"{result['document']['content']}\n\n"
+        
+        # VECTOR_SEARCHの場合のみログを保存
+        insert_log(message.content, results)
     else:
         response = generate_message(
             message_history,

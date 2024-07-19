@@ -2,6 +2,8 @@ import os
 from openai import AzureOpenAI
 import pymongo
 from urllib.parse import quote_plus
+import datetime
+import pytz
 
 # Azure OpenAI client initialization
 AOAI_client = AzureOpenAI(
@@ -38,3 +40,25 @@ def vector_search(query):
     ]
     results = collection.aggregate(pipeline)
     return results
+
+def insert_log(query, results):
+    log_collection = db[os.environ['cosmos_db_mongo_log_collectionname']]
+    japan_tz = pytz.timezone('Asia/Tokyo')
+    current_time_japan = datetime.datetime.now(japan_tz).strftime('%Y-%m-%d %H:%M:%S')
+    
+    log_data = {
+        "query": query,
+        "timestamp": current_time_japan,
+        "results": []
+    }
+    
+    for result in results:
+        data = {
+            "Similarity Score": result['similarityScore'],
+            "No": result['document'].get('No'),
+            "title": result['document'].get('title'),
+            "content": result['document'].get('content'),
+        }
+        log_data["results"].append(data)
+    
+    return log_collection.insert_one(log_data)
