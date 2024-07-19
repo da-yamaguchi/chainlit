@@ -31,12 +31,14 @@ async def chat_profile():
     return [
         cl.ChatProfile(
             name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
-            markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
+            # markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
+            markdown_description="基盤となるLLMモデルはAzureOpenAIの**gpt-35-turbo-16k**です。",
             # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
             name=os.environ["AZURE_GPT_4O_NAME"],
-            markdown_description="The underlying LLM model is **gpt-4**.",
+            # markdown_description="The underlying LLM model is **gpt-4**.",
+            markdown_description="基盤となるLLMモデルはAzureOpenAIの**gpt-4**です。",
             # icon="icon画像のURLを指定します。",
         ),
     ]
@@ -46,8 +48,6 @@ async def start():
     """
     Chatを開始したタイミングで一度だけ呼ばれる。
     """
-    print(cl.config.features.spontaneous_file_upload)
-
     # # パラメータの設定項目を定義する
     # settings = await cl.ChatSettings(
     #     [
