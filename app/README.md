@@ -9,7 +9,12 @@ chainlit_env\Scripts\activate
 ### アプリ実行
 
 ```bash
-chainlit run .\main.py 
+chainlit run .\test\main.py 
+```
+
+ポート指定で起動する方法  
+```bash
+chainlit run --port 8888 .\test\main-plus.py 
 ```
 
 # Systemdサービスファイルの作成と設定
