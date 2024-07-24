@@ -43,8 +43,8 @@ async def chat_profile():
             # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
-            name="VECTOR_SEARCH",
-            markdown_description="Azure Cosmos DBのベクトル検索を使用します。",
+            name="QA-Search",
+            markdown_description="QA登録された情報から質問に近い、回答を探します。",
         ),
     ]
 
@@ -95,18 +95,26 @@ async def main(message: cl.Message):
         "content":message.content
     })
     
-    if chat_profile == "VECTOR_SEARCH":
-        # results = vector_search(message.content)
-        results = list(vector_search(message.content))  # リストに変換
-        response_content = ""
-        for result in results:
-            # response_content += f"Score: {result['similarityScore']}\n"
-            # response_content += f"Title: {result['document']['title']}\n"
-            # response_content += f"Content: {result['document']['content']}\n\n"
-            response_content += f"{result['document']['content']}\n\n"
+    if chat_profile == "QA-Search":
+        search_result = vector_search(message.content)
+        
+        if search_result["user_message"]:
+            response_content = search_result["user_message"]
+        else:
+            response_content = ""
+            for result in search_result["results"]:
+                response_content += f"{result['document']['content']}\n\n"
         
         # VECTOR_SEARCHの場合のみログを保存
-        insert_log(message.content, results)
+        insert_log(message.content, search_result)
+        # # results = list(vector_search(message.content))  # リストに変換
+        # results = vector_search(message.content)
+        # response_content = ""
+        # for result in results:
+        #     response_content += f"{result['document']['content']}\n\n"
+        
+        # # VECTOR_SEARCHの場合のみログを保存
+        # insert_log(message.content, results)
     else:
         response = generate_message(
             message_history,

@@ -38,10 +38,27 @@ def vector_search(query):
         },
         {'$project': { 'similarityScore': { '$meta': 'searchScore' }, 'document' : '$$ROOT' } }
     ]
-    results = collection.aggregate(pipeline)
-    return results
+    results = list(collection.aggregate(pipeline))
+    
+    # similarityScoreの閾値を設定
+    threshold = 0.81
+    
+    # if not results or all(result['similarityScore'] < threshold for result in results):
+    #     return [{"document": {"content": "質問に近い回答が見つかりませんでした。別の質問をお試しください。"}}]
+    
+    # return results
+    if not results or all(result['similarityScore'] < threshold for result in results):
+        return {
+            "user_message": "質問に近い回答が見つかりませんでした。別の質問をお試しください。",
+            "results": results  # 元の検索結果（空の場合もある）
+        }
+    
+    return {
+        "user_message": None,
+        "results": results
+    }
 
-def insert_log(query, results):
+def insert_log(query, search_result):
     log_collection = db[os.environ['cosmos_db_mongo_log_collectionname']]
     japan_tz = pytz.timezone('Asia/Tokyo')
     current_time_japan = datetime.datetime.now(japan_tz).strftime('%Y-%m-%d %H:%M:%S')
@@ -52,9 +69,10 @@ def insert_log(query, results):
         "results": []
     }
     
-    for result in results:
+    for result in search_result["results"]:
         data = {
-            "Similarity Score": result['similarityScore'],
+            # "Similarity Score": result['similarityScore'],
+            "Similarity Score": result.get('similarityScore'),
             "No": result['document'].get('No'),
             "title": result['document'].get('title'),
             "content": result['document'].get('content'),
