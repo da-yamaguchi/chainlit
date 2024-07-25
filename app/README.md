@@ -13,11 +13,13 @@ source chainlit_env/bin/activate
 ### アプリ実行
 
 ```bash
-chainlit run .\test\main.py 
+chainlit run .\test\main-plus.py 
+chainlit run .\app\main.py 
 ```
 Linux  
 ```bash
 chainlit run ./test/main-plus.py
+chainlit run ./app/main.py
 ```
 
 ポート指定で起動する方法  
