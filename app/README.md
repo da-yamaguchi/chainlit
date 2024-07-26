@@ -28,7 +28,7 @@ chainlit run --port 8888 .\test\main-plus.py
 ```
 Linux  
 ```bash
-chainlit run --port 8888 ./test/main-plus.py
+chainlit run --port 8888 ./app/main.py
 ```
 
 # Systemdサービスファイルの作成と設定
