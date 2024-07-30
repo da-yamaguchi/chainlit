@@ -1,8 +1,9 @@
 import os
 from typing import List,Dict
 from dotenv import load_dotenv
-
 from openai import AzureOpenAI
+from langchain_aws import ChatBedrock
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 load_dotenv()
 
@@ -35,4 +36,27 @@ def generate_message(
     return {
                 "role":"assistant",
                 "content":chat_completion.choices[0].message.content
+    }
+
+def generate_bedrock_message(messages: List[Dict]):
+    chat = ChatBedrock(
+        # model_id="anthropic.claude-3-sonnet-20240229-v1:0", # claude-3-sonnet
+        model_id="anthropic.claude-3-5-sonnet-20240620-v1:0", # claude-3-sonnet
+        model_kwargs={"temperature": 0.1, "max_tokens": 4000},
+    )
+    
+    langchain_messages = []
+    for message in messages:
+        if message["role"] == "system":
+            langchain_messages.append(SystemMessage(content=message["content"]))
+        elif message["role"] == "user":
+            langchain_messages.append(HumanMessage(content=message["content"]))
+        elif message["role"] == "assistant":
+            langchain_messages.append(AIMessage(content=message["content"]))
+    
+    result = chat.invoke(langchain_messages)
+    
+    return {
+        "role": "assistant",
+        "content": result.content
     }

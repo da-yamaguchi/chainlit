@@ -7,7 +7,7 @@ import chainlit as cl
 from chainlit.input_widget import Slider
 from dotenv import load_dotenv
 
-from llm_response import generate_message, SYSTEM_CONTENT
+from llm_response import generate_message, generate_bedrock_message, SYSTEM_CONTENT
 from vector_search import vector_search, insert_log
 
 load_dotenv()
@@ -33,14 +33,22 @@ async def chat_profile():
         cl.ChatProfile(
             name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
             # markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
-            markdown_description="基盤となるLLMモデルはAzureOpenAIの**gpt-35-turbo-16k**です。",
+            markdown_description="AzureOpenAIの**gpt-35-turbo-16k**モデルを使用します。",
             # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
             name=os.environ["AZURE_GPT_4O_NAME"],
             # markdown_description="The underlying LLM model is **gpt-4**.",
-            markdown_description="基盤となるLLMモデルはAzureOpenAIの**gpt-4**です。",
+            markdown_description="AzureOpenAIの**gpt-4**モデルを使用します。",
             # icon="icon画像のURLを指定します。",
+        ),
+        # cl.ChatProfile(
+        #     name="Claude-3-Sonnet",
+        #     markdown_description="Amazon Bedrockの**Claude 3 Sonnet**モデルを使用します。",
+        # ),
+        cl.ChatProfile(
+            name="Claude-3.5-Sonnet",
+            markdown_description="Amazon Bedrockの**Claude 3.5 Sonnet**モデルを使用します。",
         ),
         cl.ChatProfile(
             name="QA-Search",
@@ -107,14 +115,9 @@ async def main(message: cl.Message):
         
         # VECTOR_SEARCHの場合のみログを保存
         insert_log(message.content, search_result)
-        # # results = list(vector_search(message.content))  # リストに変換
-        # results = vector_search(message.content)
-        # response_content = ""
-        # for result in results:
-        #     response_content += f"{result['document']['content']}\n\n"
-        
-        # # VECTOR_SEARCHの場合のみログを保存
-        # insert_log(message.content, results)
+    elif chat_profile == "Claude-3.5-Sonnet":
+        response = generate_bedrock_message(message_history)
+        response_content = response["content"]
     else:
         response = generate_message(
             message_history,
