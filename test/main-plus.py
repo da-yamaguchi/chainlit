@@ -42,6 +42,12 @@ async def chat_profile():
             markdown_description="AzureOpenAIの**gpt-4**モデルを使用します。",
             # icon="icon画像のURLを指定します。",
         ),
+        cl.ChatProfile(
+            name=os.environ["AZURE_GPT_4O_MINI_NAME"],
+            # markdown_description="The underlying LLM model is **gpt-4**.",
+            markdown_description="AzureOpenAIの**gpt-4o-mini**モデルを使用します。",
+            # icon="icon画像のURLを指定します。",
+        ),
         # cl.ChatProfile(
         #     name="Claude-3-Sonnet",
         #     markdown_description="Amazon Bedrockの**Claude 3 Sonnet**モデルを使用します。",
