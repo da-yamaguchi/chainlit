@@ -31,21 +31,15 @@ async def chat_profile():
     
     return [
         cl.ChatProfile(
-            name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
-            # markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
-            markdown_description="AzureOpenAIの**gpt-35-turbo-16k**モデルを使用します。",
+            name=os.environ["AZURE_GPT_4O_MINI_NAME"],
+            # markdown_description="The underlying LLM model is **gpt-4**.",
+            markdown_description="AzureOpenAIの**gpt-4o-mini**モデルを使用します。",
             # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
             name=os.environ["AZURE_GPT_4O_NAME"],
             # markdown_description="The underlying LLM model is **gpt-4**.",
             markdown_description="AzureOpenAIの**gpt-4**モデルを使用します。",
-            # icon="icon画像のURLを指定します。",
-        ),
-        cl.ChatProfile(
-            name=os.environ["AZURE_GPT_4O_MINI_NAME"],
-            # markdown_description="The underlying LLM model is **gpt-4**.",
-            markdown_description="AzureOpenAIの**gpt-4o-mini**モデルを使用します。",
             # icon="icon画像のURLを指定します。",
         ),
         # cl.ChatProfile(
@@ -59,6 +53,12 @@ async def chat_profile():
         cl.ChatProfile(
             name="QA-Search",
             markdown_description="QA登録された情報から質問に近い、回答を探します。",
+        ),
+        cl.ChatProfile(
+            name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
+            # markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
+            markdown_description="AzureOpenAIの**gpt-35-turbo-16k**モデルを使用します。\ngpt-4o-miniがコスト、性能としても上位互換のため、本モデルの使用は非推奨です。",
+            # icon="icon画像のURLを指定します。",
         ),
     ]
 
