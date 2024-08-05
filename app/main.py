@@ -8,6 +8,7 @@ from chainlit.input_widget import Slider
 from dotenv import load_dotenv
 
 from llm_response import generate_message, generate_bedrock_message, SYSTEM_CONTENT
+from vector_search import vector_search, insert_log
 
 load_dotenv()
 
@@ -30,9 +31,9 @@ async def chat_profile():
     
     return [
         cl.ChatProfile(
-            name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
-            # markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
-            markdown_description="AzureOpenAIの**gpt-35-turbo-16k**モデルを使用します。",
+            name=os.environ["AZURE_GPT_4O_MINI_NAME"],
+            # markdown_description="The underlying LLM model is **gpt-4**.",
+            markdown_description="AzureOpenAIの**gpt-4o-mini**モデルを使用します。",
             # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
@@ -44,6 +45,16 @@ async def chat_profile():
         cl.ChatProfile(
             name="Claude-3.5-Sonnet",
             markdown_description="Amazon Bedrockの**Claude 3.5 Sonnet**モデルを使用します。",
+        ),
+        cl.ChatProfile(
+            name="QA-Search",
+            markdown_description="QA登録された情報から質問に近い、回答を探します。",
+        ),
+        cl.ChatProfile(
+            name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
+            # markdown_description="The underlying LLM model is **gpt-35-turbo-16k**.",
+            markdown_description="AzureOpenAIの**gpt-35-turbo-16k**モデルを使用します。\ngpt-4o-miniがコスト、性能としても上位互換のため、本モデルの使用は非推奨です。",
+            # icon="icon画像のURLを指定します。",
         ),
     ]
 
@@ -94,7 +105,19 @@ async def main(message: cl.Message):
         "content":message.content
     })
     
-    if chat_profile == "Claude-3.5-Sonnet":
+    if chat_profile == "QA-Search":
+        search_result = vector_search(message.content)
+        
+        if search_result["user_message"]:
+            response_content = search_result["user_message"]
+        else:
+            response_content = ""
+            for result in search_result["results"]:
+                response_content += f"{result['document']['content']}\n\n"
+        
+        # VECTOR_SEARCHの場合のみログを保存
+        insert_log(message.content, search_result)
+    elif chat_profile == "Claude-3.5-Sonnet":
         response = generate_bedrock_message(message_history)
         response_content = response["content"]
     else:
@@ -108,9 +131,8 @@ async def main(message: cl.Message):
     
     message_history.append({
         "role":"assistant",
-        "content":response["content"]
+        "content":response_content
     })
-
 
 ## ログイン認証機能 ここから
 # USERNAME = os.getenv("USERNAME")

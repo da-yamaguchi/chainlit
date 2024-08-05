@@ -1,9 +1,10 @@
 import os
 from openai import AzureOpenAI
-import pymongo
+from pymongo import MongoClient
 from urllib.parse import quote_plus
 import datetime
 import pytz
+import atexit
 
 # Azure OpenAI client initialization
 AOAI_client = AzureOpenAI(
@@ -12,11 +13,14 @@ AOAI_client = AzureOpenAI(
     azure_endpoint = os.environ['AZURE_OPENAI_ENDPOINT']
 )
 
-# MongoDB client initialization
+# グローバル変数として接続プールを作成
 mongo_conn = f"mongodb+srv://{quote_plus(os.environ['cosmos_db_mongo_user'])}:{quote_plus(os.environ['cosmos_db_mongo_pwd'])}@{os.environ['cosmos_db_mongo_server']}?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000"
-mongo_client = pymongo.MongoClient(mongo_conn)
-db = mongo_client[os.environ['cosmos_db_mongo_dbname']]
-collection = db[os.environ['cosmos_db_mongo_collectionname']]
+mongo_client = MongoClient(mongo_conn, maxPoolSize=10, minPoolSize=5, maxIdleTimeMS=120000, socketTimeoutMS=30000, connectTimeoutMS=5000)
+
+atexit.register(mongo_client.close)
+
+def get_db():
+    return mongo_client[os.environ['cosmos_db_mongo_dbname']]
 
 def generate_embeddings(text):
     response = AOAI_client.embeddings.create(input=text, model=os.environ['openai_embeddings_deployment'])
@@ -24,6 +28,9 @@ def generate_embeddings(text):
     return embeddings['data'][0]['embedding']
 
 def vector_search(query):
+    db = get_db()
+    collection = db[os.environ['cosmos_db_mongo_collectionname']]
+    
     query_embedding = generate_embeddings(query)
     pipeline = [
         {
@@ -59,7 +66,9 @@ def vector_search(query):
     }
 
 def insert_log(query, search_result):
+    db = get_db()
     log_collection = db[os.environ['cosmos_db_mongo_log_collectionname']]
+    
     japan_tz = pytz.timezone('Asia/Tokyo')
     current_time_japan = datetime.datetime.now(japan_tz).strftime('%Y-%m-%d %H:%M:%S')
     
