@@ -86,7 +86,7 @@ async def start():
     # ).send()
 
     # await update_settings(settings)
-    
+
 @cl.on_settings_update
 async def update_settings(settings):
     """
@@ -99,7 +99,23 @@ async def main(message: cl.Message):
     """
     ユーザーからメッセージが送られたら実行される関数
     """
+    # 現在のチャットプロファイルを取得
     chat_profile = cl.user_session.get("chat_profile")
+    # 以前のチャットプロファイルをセッションから取得
+    previous_chat_profile = cl.user_session.get("previous_chat_profile")
+
+    # チャットプロファイルが変更された場合、履歴をリセット
+    if chat_profile != previous_chat_profile:
+        global message_history
+        message_history = [
+            {
+                "role": "system",
+                "content": SYSTEM_CONTENT
+            }
+        ]
+        # セッションに新しいプロファイルを保存
+        cl.user_session.set("previous_chat_profile", chat_profile)
+
     message_history.append({
         "role":"user",
         "content":message.content
@@ -133,6 +149,8 @@ async def main(message: cl.Message):
         "role":"assistant",
         "content":response_content
     })
+    # # message_historyをコンソールに出力
+    # print(message_history)
 
 ## ログイン認証機能 ここから
 # USERNAME = os.getenv("USERNAME")
