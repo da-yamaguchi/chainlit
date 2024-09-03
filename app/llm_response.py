@@ -54,6 +54,7 @@ def generate_bedrock_message(messages: List[Dict]):
             langchain_messages.append(AIMessage(content=message["content"]))
     
     try:
+        # print(f"langchain_messages: {langchain_messages}")
         result = chat.invoke(langchain_messages)
     
         return {

@@ -15,6 +15,10 @@ load_dotenv()
 # ファイル添付機能を非表示に
 cl.config.features.spontaneous_file_upload = None
 
+# 最大メッセージ数を定義（例: システムメッセージ + 10往復のやり取り）
+MAX_MESSAGES = 21
+# MAX_MESSAGES = 5
+
 # 会話の履歴を格納する変数
 message_history = [
     {
@@ -22,6 +26,43 @@ message_history = [
         "content":SYSTEM_CONTENT
     }
 ]
+
+# message_historyを更新する関数
+def update_message_history(new_message):
+    global message_history
+    message_history.append(new_message)
+    
+    # メッセージ数が最大数を超えた場合、古いメッセージを削除
+    if len(message_history) > MAX_MESSAGES:
+        # print(f"メッセージ数が最大数を超えた場合")
+        # システムメッセージを保持
+        system_messages = [msg for msg in message_history if msg["role"] == "system"]
+        
+        # ユーザーとアシスタントのメッセージをペアで取得
+        user_assistant_pairs = []
+        for i in range(1, len(message_history) - 1, 2):
+            if message_history[i]["role"] == "user" and message_history[i+1]["role"] == "assistant":
+                user_assistant_pairs.append((message_history[i], message_history[i+1]))
+        
+        # 古いペアを削除し、新しいペアを保持
+        pairs_to_keep = user_assistant_pairs[-(MAX_MESSAGES - len(system_messages))//2:]
+        
+        # 削除されるメッセージを表示
+        pairs_to_remove = user_assistant_pairs[:-len(pairs_to_keep)]
+        for user_msg, assistant_msg in pairs_to_remove:
+            print(f"削除されるメッセージ: ユーザー: {user_msg['content']}, アシスタント: {assistant_msg['content']}")
+        
+        # 新しいmessage_historyを構築
+        new_message_history = system_messages[:]
+        for user_msg, assistant_msg in pairs_to_keep:
+            new_message_history.extend([user_msg, assistant_msg])
+        
+        # 最新のメッセージを追加
+        new_message_history.append(new_message)
+        
+        message_history = new_message_history
+    # else:
+        # print(f"メッセージ数が最大数を超えなかった場合")
 
 @cl.set_chat_profiles
 async def chat_profile():
@@ -116,11 +157,16 @@ async def main(message: cl.Message):
         # セッションに新しいプロファイルを保存
         cl.user_session.set("previous_chat_profile", chat_profile)
 
-    message_history.append({
+    # message_history.append({
+    #     "role":"user",
+    #     "content":message.content
+    # })
+    # ユーザーメッセージを追加
+    update_message_history({
         "role":"user",
         "content":message.content
     })
-    
+
     if chat_profile == "QA-Search":
         search_result = vector_search(message.content)
         
@@ -145,10 +191,15 @@ async def main(message: cl.Message):
     
     await cl.Message(content=response_content).send()
     
-    message_history.append({
+    # message_history.append({
+    #     "role":"assistant",
+    #     "content":response_content
+    # })
+    # アシスタントの応答を追加
+    update_message_history({
         "role":"assistant",
         "content":response_content
-    })
+    })    
     # # message_historyをコンソールに出力
     # print(message_history)
 
