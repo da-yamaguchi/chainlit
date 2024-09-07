@@ -1,7 +1,3 @@
-"""
-使用するモデルやパラメータの調整を可能にしたバージョン
-"""
-
 import os
 import chainlit as cl
 from chainlit.input_widget import Slider
@@ -16,8 +12,9 @@ load_dotenv()
 cl.config.features.spontaneous_file_upload = None
 
 # 最大メッセージ数を定義（例: システムメッセージ + 10往復のやり取り）
-MAX_MESSAGES = 21
+# MAX_MESSAGES = 21
 # MAX_MESSAGES = 5
+MAX_MESSAGES = 11
 
 # 会話の履歴を格納する変数
 message_history = [
@@ -51,6 +48,7 @@ def update_message_history(new_message):
         pairs_to_remove = user_assistant_pairs[:-len(pairs_to_keep)]
         for user_msg, assistant_msg in pairs_to_remove:
             print(f"削除されるメッセージ: ユーザー: {user_msg['content']}, アシスタント: {assistant_msg['content']}")
+            print("削除されるメッセージがありました。")
         
         # 新しいmessage_historyを構築
         new_message_history = system_messages[:]
@@ -167,28 +165,59 @@ async def main(message: cl.Message):
         "content":message.content
     })
 
-    if chat_profile == "QA-Search":
-        search_result = vector_search(message.content)
-        
-        if search_result["user_message"]:
-            response_content = search_result["user_message"]
+    # ローディングスピナーを表示
+    loading_message = cl.Message(content="応答を生成中...")
+    await loading_message.send()
+    await cl.sleep(0.1) # sleepをいれないとcontentが表示されない
+
+    try:
+        if chat_profile == "QA-Search":
+            search_result = vector_search(message.content)
+            
+            if search_result["user_message"]:
+                response_content = search_result["user_message"]
+            else:
+                response_content = ""
+                for result in search_result["results"]:
+                    response_content += f"{result['document']['content']}\n\n"
+            
+            # VECTOR_SEARCHの場合のみログを保存
+            insert_log(message.content, search_result)
+        elif chat_profile == "Claude-3.5-Sonnet":
+            response = generate_bedrock_message(message_history)
+            response_content = response["content"]
         else:
-            response_content = ""
-            for result in search_result["results"]:
-                response_content += f"{result['document']['content']}\n\n"
-        
-        # VECTOR_SEARCHの場合のみログを保存
-        insert_log(message.content, search_result)
-    elif chat_profile == "Claude-3.5-Sonnet":
-        response = generate_bedrock_message(message_history)
-        response_content = response["content"]
-    else:
-        response = generate_message(
-            message_history,
-            model_name=chat_profile,
-        )
-        response_content = response["content"]
+            response = generate_message(
+                message_history,
+                model_name=chat_profile,
+            )
+            response_content = response["content"]
+    finally:
+        # ローディングスピナーを非表示
+        await loading_message.remove()
     
+    # if chat_profile == "QA-Search":
+    #     search_result = vector_search(message.content)
+        
+    #     if search_result["user_message"]:
+    #         response_content = search_result["user_message"]
+    #     else:
+    #         response_content = ""
+    #         for result in search_result["results"]:
+    #             response_content += f"{result['document']['content']}\n\n"
+        
+    #     # VECTOR_SEARCHの場合のみログを保存
+    #     insert_log(message.content, search_result)
+    # elif chat_profile == "Claude-3.5-Sonnet":
+    #     response = generate_bedrock_message(message_history)
+    #     response_content = response["content"]
+    # else:
+    #     response = generate_message(
+    #         message_history,
+    #         model_name=chat_profile,
+    #     )
+    #     response_content = response["content"]
+
     await cl.Message(content=response_content).send()
     
     # message_history.append({
