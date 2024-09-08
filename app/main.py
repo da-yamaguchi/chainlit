@@ -12,9 +12,7 @@ load_dotenv()
 cl.config.features.spontaneous_file_upload = None
 
 # 最大メッセージ数を定義（例: システムメッセージ + 10往復のやり取り）
-# MAX_MESSAGES = 21
-# MAX_MESSAGES = 5
-MAX_MESSAGES = 11
+MAX_MESSAGES = 21
 
 # 会話の履歴を格納する変数
 message_history = [
@@ -47,7 +45,7 @@ def update_message_history(new_message):
         # 削除されるメッセージを表示
         pairs_to_remove = user_assistant_pairs[:-len(pairs_to_keep)]
         for user_msg, assistant_msg in pairs_to_remove:
-            print(f"削除されるメッセージ: ユーザー: {user_msg['content']}, アシスタント: {assistant_msg['content']}")
+            # print(f"削除されるメッセージ: ユーザー: {user_msg['content']}, アシスタント: {assistant_msg['content']}")
             print("削除されるメッセージがありました。")
         
         # 新しいmessage_historyを構築
@@ -76,18 +74,18 @@ async def chat_profile():
             # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
-            name=os.environ["AZURE_GPT_4O_NAME"],
-            # markdown_description="The underlying LLM model is **gpt-4**.",
-            markdown_description="AzureOpenAIの**gpt-4**モデルを使用します。",
-            # icon="icon画像のURLを指定します。",
-        ),
-        cl.ChatProfile(
             name="Claude-3.5-Sonnet",
             markdown_description="Amazon Bedrockの**Claude 3.5 Sonnet**モデルを使用します。",
         ),
         cl.ChatProfile(
             name="QA-Search",
             markdown_description="QA登録された情報から質問に近い、回答を探します。",
+        ),
+        cl.ChatProfile(
+            name=os.environ["AZURE_GPT_4O_NAME"],
+            # markdown_description="The underlying LLM model is **gpt-4**.",
+            markdown_description="AzureOpenAIの**gpt-4**モデルを使用します。",
+            # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
             name=os.environ["AZURE_OPENAI_DEPLOY_NAME"],
@@ -155,10 +153,6 @@ async def main(message: cl.Message):
         # セッションに新しいプロファイルを保存
         cl.user_session.set("previous_chat_profile", chat_profile)
 
-    # message_history.append({
-    #     "role":"user",
-    #     "content":message.content
-    # })
     # ユーザーメッセージを追加
     update_message_history({
         "role":"user",
@@ -196,41 +190,13 @@ async def main(message: cl.Message):
         # ローディングスピナーを非表示
         await loading_message.remove()
     
-    # if chat_profile == "QA-Search":
-    #     search_result = vector_search(message.content)
-        
-    #     if search_result["user_message"]:
-    #         response_content = search_result["user_message"]
-    #     else:
-    #         response_content = ""
-    #         for result in search_result["results"]:
-    #             response_content += f"{result['document']['content']}\n\n"
-        
-    #     # VECTOR_SEARCHの場合のみログを保存
-    #     insert_log(message.content, search_result)
-    # elif chat_profile == "Claude-3.5-Sonnet":
-    #     response = generate_bedrock_message(message_history)
-    #     response_content = response["content"]
-    # else:
-    #     response = generate_message(
-    #         message_history,
-    #         model_name=chat_profile,
-    #     )
-    #     response_content = response["content"]
-
     await cl.Message(content=response_content).send()
     
-    # message_history.append({
-    #     "role":"assistant",
-    #     "content":response_content
-    # })
     # アシスタントの応答を追加
     update_message_history({
         "role":"assistant",
         "content":response_content
     })    
-    # # message_historyをコンソールに出力
-    # print(message_history)
 
 ## ログイン認証機能 ここから
 # USERNAME = os.getenv("USERNAME")
