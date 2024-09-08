@@ -40,7 +40,6 @@ def generate_message(
 
 def generate_bedrock_message(messages: List[Dict]):
     chat = ChatBedrock(
-        # model_id="anthropic.claude-3-sonnet-20240229-v1:0", # claude-3-sonnet
         model_id="anthropic.claude-3-5-sonnet-20240620-v1:0", # claude-3-sonnet
         model_kwargs={"temperature": 0.1, "max_tokens": 4000},
     )
@@ -54,9 +53,16 @@ def generate_bedrock_message(messages: List[Dict]):
         elif message["role"] == "assistant":
             langchain_messages.append(AIMessage(content=message["content"]))
     
-    result = chat.invoke(langchain_messages)
+    try:
+        # print(f"langchain_messages: {langchain_messages}")
+        result = chat.invoke(langchain_messages)
     
-    return {
-        "role": "assistant",
-        "content": result.content
-    }
+        return {
+            "role": "assistant",
+            "content": result.content
+        }
+    except Exception as e:
+        return {
+            "role": "error",
+            "content": f"エラーが発生しました: {str(e)}"
+        }
