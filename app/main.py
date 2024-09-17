@@ -6,6 +6,11 @@ from dotenv import load_dotenv
 from llm_response import generate_message, generate_bedrock_message, SYSTEM_CONTENT
 from vector_search import vector_search, insert_log
 
+from chainlit.input_widget import TextInput
+from chainlit.input_widget import Tags
+from chainlit.input_widget import Switch
+from chainlit.input_widget import Select
+
 load_dotenv()
 
 # ファイル添付機能を非表示に
@@ -100,6 +105,56 @@ async def start():
     """
     Chatを開始したタイミングで一度だけ呼ばれる。
     """
+
+    # プロンプトライブラリの定義
+    prompt_library = {
+        "一般的な会話": "あなたは親切で知識豊富なアシスタントです。ユーザーの質問に丁寧に答えてください。",
+        "技術サポート": "あなたは技術サポートの専門家です。ユーザーの技術的な問題を解決するのを手伝ってください。",
+        "創造的な執筆": "あなたは創造的な作家のアシスタントです。ユーザーの物語や詩の創作を手伝ってください。",
+        "カスタム": ""  # カスタムオプション用
+    }
+
+    settings = await cl.ChatSettings(
+        [
+            Select(
+                id="PromptLibrary",
+                label="プロンプトライブラリ",
+                values=list(prompt_library.keys()),
+                initial_index=0,
+            ),
+            TextInput(
+                id="CustomPrompt",
+                label="カスタムプロンプト",
+                initial=prompt_library["一般的な会話"],
+            ),
+        ]
+    ).send()
+
+    await update_settings(settings)
+    
+    # settings = await cl.ChatSettings(
+    # [
+    #     Select(
+    #         id="Model",
+    #         label="OpenAI - Model",
+    #         values=["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "gpt-4-32k"],
+    #         initial_index=0,
+    #     ),
+    #     TextInput(id="AgentName", label="Agent Name", initial="AI"),
+    #     # Switch(id="Streaming", label="OpenAI - Stream Tokens", initial=True),
+    #     # Tags(id="StopSequence", label="OpenAI - StopSequence", initial=["Answer:"]),
+    # ]
+    # ).send()
+
+
+    # value = settings["AgentName"]
+
+    # value = settings["Model"]
+
+    # value = settings["Streaming"]
+
+    # value = settings["StopSequence"]
+
     # # パラメータの設定項目を定義する
     # settings = await cl.ChatSettings(
     #     [
@@ -129,13 +184,36 @@ async def update_settings(settings):
     """
     パラメータの設定を変更する。
     """
-    cl.user_session.set("llm_parameters",settings)
+    # prompt_library = {
+    #     "一般的な会話": "あなたは親切で知識豊富なアシスタントです。ユーザーの質問に丁寧に答えてください。",
+    #     "技術サポート": "あなたは技術サポートの専門家です。ユーザーの技術的な問題を解決するのを手伝ってください。",
+    #     "創造的な執筆": "あなたは創造的な作家のアシスタントです。ユーザーの物語や詩の創作を手伝ってください。",
+    #     "カスタム": ""  # カスタムオプション用
+    # }
+
+    # selected_prompt = settings["PromptLibrary"]
+    # if selected_prompt != "カスタム":
+    #     settings["CustomPrompt"] = prompt_library[selected_prompt]
+    
+    # cl.user_session.set("ChatSettings", settings)
+    
+    # # 設定が更新されたことをユーザーに通知
+    # await cl.Message(content=f"プロンプトが更新されました: {settings['CustomPrompt'][:50]}...").send()
+
+    # # システムメッセージを更新
+    # global message_history
+    # message_history[0] = {
+    #     "role": "system",
+    #     "content": settings["CustomPrompt"]
+    # }
     
 @cl.on_message
 async def main(message: cl.Message):
     """
     ユーザーからメッセージが送られたら実行される関数
     """
+    chatSettings = cl.user_session.get("ChatSettings")
+
     # 現在のチャットプロファイルを取得
     chat_profile = cl.user_session.get("chat_profile")
     # 以前のチャットプロファイルをセッションから取得
