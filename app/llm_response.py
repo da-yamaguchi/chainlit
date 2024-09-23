@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from openai import AzureOpenAI
 from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from openai import AsyncAzureOpenAI
 
 load_dotenv()
 
@@ -67,34 +66,3 @@ def generate_bedrock_message(messages: List[Dict]):
             "role": "error",
             "content": f"エラーが発生しました: {str(e)}"
         }
-
-async def generate_message_stream(
-        messages: List[Dict],
-        model_name: str = os.environ["AZURE_OPENAI_DEPLOY_NAME"],
-        max_tokens: int = 4000,
-        temperature: float = 0.0
-    ):
-    
-    client = AsyncAzureOpenAI(
-        api_key=os.environ["AZURE_OPENAI_API_KEY"],
-        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-        api_version=os.environ["OPENAI_API_VERSION"]
-    )
-
-    stream = await client.chat.completions.create(
-        messages=messages,
-        model=model_name,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        stream=True,
-    )
-
-    collected_chunks = []
-    collected_messages = []
-
-    async for chunk in stream:
-        collected_chunks.append(chunk)
-        chunk_message = chunk.choices[0].delta.content
-        collected_messages.append(chunk_message)
-        if chunk_message is not None:
-            yield chunk_message
