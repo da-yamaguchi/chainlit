@@ -33,50 +33,14 @@ def update_message_history(new_message):
     message_history.append(new_message)
     
     # メッセージ数が最大数を超えた場合、古いメッセージを削除
-    if len(message_history) > MAX_MESSAGES:
-        # print(f"メッセージ数が最大数を超えた場合")
-        # システムメッセージを保持
-        system_messages = [msg for msg in message_history if msg["role"] == "system"]
-        
-        # ユーザーとアシスタントのメッセージをペアで取得
-        user_assistant_pairs = []
-        # for i in range(1, len(message_history) - 1, 2):
-        #     if message_history[i]["role"] == "user" and message_history[i+1]["role"] == "assistant":
-        #         user_assistant_pairs.append((message_history[i], message_history[i+1]))
-        for i in range(0, len(message_history) - 1, 2):
-            if message_history[i]["role"] == "user" and message_history[i + 1]["role"] == "assistant":
-                user_assistant_pairs.append((message_history[i], message_history[i + 1]))
+    while len(message_history) > MAX_MESSAGES:
 
-        # # 古いペアを削除し、新しいペアを保持
-        # pairs_to_keep = user_assistant_pairs[-(MAX_MESSAGES - len(system_messages))//2:]
-        # 残すペアの数を計算
-        pairs_to_keep_count = (MAX_MESSAGES - len(system_messages)) // 2
-
-        # ペアが足りない場合は、全てのペアを保持
-        if pairs_to_keep_count > len(user_assistant_pairs):
-            pairs_to_keep_count = len(user_assistant_pairs)
-        
-        # 古いペアを削除し、新しいペアを保持
-        pairs_to_keep = user_assistant_pairs[-pairs_to_keep_count:]
-        print("削除されるメッセージがありました。")
-
-        # # 削除されるメッセージを表示
-        # pairs_to_remove = user_assistant_pairs[:-len(pairs_to_keep)]
-        # for user_msg, assistant_msg in pairs_to_remove:
-        #     # print(f"削除されるメッセージ: ユーザー: {user_msg['content']}, アシスタント: {assistant_msg['content']}")
-        #     print("削除されるメッセージがありました。")
-        
-        # 新しいmessage_historyを構築
-        new_message_history = system_messages[:]
-        for user_msg, assistant_msg in pairs_to_keep:
-            new_message_history.extend([user_msg, assistant_msg])
-        
-        # 最新のメッセージを追加
-        new_message_history.append(new_message)
-        
-        message_history = new_message_history
-    # else:
-        # print(f"メッセージ数が最大数を超えなかった場合")
+        # 古いメッセージを削除
+        for msg in message_history:
+            if msg["role"] != "system":
+                # print(msg)
+                message_history.remove(msg)
+                break  # 一つ削除したらループを抜ける
 
 @cl.set_chat_profiles
 async def chat_profile():
