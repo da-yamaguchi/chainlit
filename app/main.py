@@ -32,7 +32,7 @@ def update_message_history(new_message):
         # 古いメッセージを削除
         for msg in message_history:
             if msg["role"] != "system":
-                print(msg)
+                # print(msg)
                 message_history.remove(msg)
                 break  # 一つ削除したらループを抜ける
 
