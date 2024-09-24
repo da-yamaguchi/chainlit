@@ -27,7 +27,6 @@ message_history = [
     }
 ]
 
-# message_historyを更新する関数
 def update_message_history(new_message):
     global message_history
     message_history.append(new_message)
@@ -38,7 +37,7 @@ def update_message_history(new_message):
         # 古いメッセージを削除
         for msg in message_history:
             if msg["role"] != "system":
-                # print(msg)
+                print(msg)
                 message_history.remove(msg)
                 break  # 一つ削除したらループを抜ける
 
