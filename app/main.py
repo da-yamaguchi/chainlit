@@ -92,16 +92,18 @@ async def start():
 
     settings = await cl.ChatSettings(
         [
-            Select(
-                id="PromptLibrary",
-                label="プロンプトライブラリ",
-                values=list(prompt_library.keys()),
-                initial_index=0,
-            ),
+            # Select(
+            #     id="PromptLibrary",
+            #     label="プロンプトライブラリ",
+            #     values=list(prompt_library.keys()),
+            #     initial_index=0,
+            # ),
             TextInput(
                 id="CustomPrompt",
                 label="カスタムプロンプト",
-                initial=prompt_library["一般的な会話"],
+                # initial=prompt_library["一般的な会話"],
+                initial=SYSTEM_CONTENT,
+                multiline=True
             ),
         ]
     ).send()
@@ -171,17 +173,17 @@ async def update_settings(settings):
     # if selected_prompt != "カスタム":
     #     settings["CustomPrompt"] = prompt_library[selected_prompt]
     
-    # cl.user_session.set("ChatSettings", settings)
+    cl.user_session.set("ChatSettings", settings)
     
     # # 設定が更新されたことをユーザーに通知
     # await cl.Message(content=f"プロンプトが更新されました: {settings['CustomPrompt'][:50]}...").send()
 
-    # # システムメッセージを更新
-    # global message_history
-    # message_history[0] = {
-    #     "role": "system",
-    #     "content": settings["CustomPrompt"]
-    # }
+    # システムメッセージを更新
+    global message_history
+    message_history[0] = {
+        "role": "system",
+        "content": settings["CustomPrompt"]
+    }
     
 @cl.on_message
 async def main(message: cl.Message):
@@ -201,7 +203,8 @@ async def main(message: cl.Message):
         message_history = [
             {
                 "role": "system",
-                "content": SYSTEM_CONTENT
+                "content": chatSettings["CustomPrompt"]
+                # "content": SYSTEM_CONTENT
             }
         ]
         # セッションに新しいプロファイルを保存
