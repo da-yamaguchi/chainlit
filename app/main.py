@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from llm_response import generate_message, generate_bedrock_message, SYSTEM_CONTENT
 from vector_search import vector_search, insert_log
 
+from chainlit.input_widget import TextInput
+
 load_dotenv()
 
 # ファイル添付機能を非表示に
@@ -76,42 +78,48 @@ async def start():
     """
     Chatを開始したタイミングで一度だけ呼ばれる。
     """
-    # # パラメータの設定項目を定義する
-    # settings = await cl.ChatSettings(
-    #     [
-    #         Slider(
-    #             id="max_tokens",
-    #             label="最大応答",
-    #             initial=800,
-    #             min=1,
-    #             max=4000,
-    #             step=1
-    #         ),
-    #         Slider(
-    #             id="temperature",
-    #             label="温度パラメータ",
-    #             initial=0,
-    #             min=0,
-    #             max=1,
-    #             step=0.01
-    #         )
-    #     ]
-    # ).send()
+    settings = await cl.ChatSettings(
+        [
+            # Select(
+            #     id="PromptLibrary",
+            #     label="プロンプトライブラリ",
+            #     values=list(prompt_library.keys()),
+            #     initial_index=0,
+            # ),
+            TextInput(
+                id="CustomPrompt",
+                label="カスタムプロンプト",
+                initial=SYSTEM_CONTENT,
+                # tooltip="ツールチップテスト",
+                description="システムプロンプト(AIの役割)を設定できます。https://docs.anthropic.com/ja/prompt-library/library などが参考になります。",
+                multiline=True
+            ),
+        ]
+    ).send()
 
-    # await update_settings(settings)
+    await update_settings(settings)
 
 @cl.on_settings_update
 async def update_settings(settings):
     """
     パラメータの設定を変更する。
     """
-    cl.user_session.set("llm_parameters",settings)
-    
+    cl.user_session.set("ChatSettings", settings)
+
+    # システムメッセージを更新
+    global message_history
+    message_history[0] = {
+        "role": "system",
+        "content": settings["CustomPrompt"]
+    }
+
 @cl.on_message
 async def main(message: cl.Message):
     """
     ユーザーからメッセージが送られたら実行される関数
     """
+    chatSettings = cl.user_session.get("ChatSettings")
+
     # 現在のチャットプロファイルを取得
     chat_profile = cl.user_session.get("chat_profile")
     # 以前のチャットプロファイルをセッションから取得
@@ -123,7 +131,7 @@ async def main(message: cl.Message):
         message_history = [
             {
                 "role": "system",
-                "content": SYSTEM_CONTENT
+                "content": chatSettings["CustomPrompt"]
             }
         ]
         # セッションに新しいプロファイルを保存
@@ -173,14 +181,3 @@ async def main(message: cl.Message):
         "role":"assistant",
         "content":response_content
     })    
-
-## ログイン認証機能 ここから
-# USERNAME = os.getenv("USERNAME")
-# PASSWORD = os.getenv("PASSWORD")
-
-# @cl.password_auth_callback
-# def auth_callback(username: str, password: str):
-#     print("auth_callback")
-#     return username == USERNAME and password == PASSWORD
-
-## ログイン認証機能 ここまで
