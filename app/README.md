@@ -32,6 +32,11 @@ chainlit run --port 8888 ./app/main.py
 chainlit run --port 8888 ./test/main-plus.py
 ```
 
+`readme`は以下が反映される  
+※`ja`もなぜか反映されない。
+```
+/home/d-yamaguchi/Github/chainlit/app/chainlit.md
+
 # Systemdサービスファイルの作成と設定
 
 仮想環境を使用するようにSystemdサービスを設定します。
