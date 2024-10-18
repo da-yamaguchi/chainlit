@@ -36,6 +36,7 @@ chainlit run --port 8888 ./test/main-plus.py
 ※`ja`もなぜか反映されない。
 ```
 /home/d-yamaguchi/Github/chainlit/app/chainlit.md
+```
 
 # Systemdサービスファイルの作成と設定
 
