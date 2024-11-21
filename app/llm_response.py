@@ -38,11 +38,17 @@ def generate_message(
                 "content":chat_completion.choices[0].message.content
     }
 
-def generate_bedrock_message(messages: List[Dict]):
-    chat = ChatBedrock(
-        model_id="anthropic.claude-3-5-sonnet-20240620-v1:0", # claude-3-sonnet
-        model_kwargs={"temperature": 0.1, "max_tokens": 4000},
-    )
+def generate_bedrock_message(messages: List[Dict], chat_profile: str):
+    if chat_profile == "Claude-3.5-Sonnet":
+        chat = ChatBedrock(
+            model_id="anthropic.claude-3-5-sonnet-20240620-v1:0",
+            model_kwargs={"temperature": 0.1, "max_tokens": 4000},
+        )
+    else:
+        chat = ChatBedrock(
+            model_id="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+            model_kwargs={"temperature": 0.1, "max_tokens": 4000},
+        )
     
     langchain_messages = []
     for message in messages:
