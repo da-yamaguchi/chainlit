@@ -1,4 +1,5 @@
 import os
+import time
 from typing import List,Dict
 from dotenv import load_dotenv
 from openai import AzureOpenAI
@@ -59,16 +60,33 @@ def generate_bedrock_message(messages: List[Dict], chat_profile: str):
         elif message["role"] == "assistant":
             langchain_messages.append(AIMessage(content=message["content"]))
     
-    try:
-        # print(f"langchain_messages: {langchain_messages}")
-        result = chat.invoke(langchain_messages)
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            result = chat.invoke(langchain_messages)
+            return {
+                "role": "assistant",
+                "content": result.content
+            }
+        except Exception as e:
+            if "ThrottlingException" in str(e) and attempt < max_retries - 1:
+                wait_time = 2 ** attempt  # 指数バックオフ
+                print(f"リトライ中... (試行回数: {attempt + 1}, 待機時間: {wait_time}秒)")
+                time.sleep(wait_time)
+            else:
+                return {
+                    "role": "error",
+                    "content": f"エラーが発生しました: {str(e)}"
+                }
+    # try:
+    #     result = chat.invoke(langchain_messages)
     
-        return {
-            "role": "assistant",
-            "content": result.content
-        }
-    except Exception as e:
-        return {
-            "role": "error",
-            "content": f"エラーが発生しました: {str(e)}"
-        }
+    #     return {
+    #         "role": "assistant",
+    #         "content": result.content
+    #     }
+    # except Exception as e:
+    #     return {
+    #         "role": "error",
+    #         "content": f"エラーが発生しました: {str(e)}"
+    #     }
