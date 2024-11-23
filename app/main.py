@@ -3,7 +3,7 @@ import chainlit as cl
 from chainlit.input_widget import Slider
 from dotenv import load_dotenv
 
-from llm_response import generate_message, generate_bedrock_message, SYSTEM_CONTENT
+from llm_response import generate_message, generate_bedrock_message, generate_tsuzumi_message, SYSTEM_CONTENT
 from vector_search import vector_search, insert_log
 
 from chainlit.input_widget import TextInput
@@ -13,7 +13,7 @@ from passlib.apache import HtpasswdFile
 load_dotenv()
 
 htpasswd_file_path = os.environ["CHAINLIT_AUTH_FILE"]
-ht = HtpasswdFile(htpasswd_file_path)
+# ht = HtpasswdFile(htpasswd_file_path)
 
 # ファイル添付機能を非表示に
 cl.config.features.spontaneous_file_upload = None
@@ -40,18 +40,18 @@ def check_htpasswd(username, password, htpasswd_path):
         print(f"File not found: {htpasswd_path}")
         return False
 
-@cl.password_auth_callback
-def auth_callback(username: str, password: str):
-    # Fetch the user matching username from your database
-    # and compare the hashed password with the value stored in the database
-    htpasswd_file_path = os.environ["CHAINLIT_AUTH_FILE"]
+# @cl.password_auth_callback
+# def auth_callback(username: str, password: str):
+#     # Fetch the user matching username from your database
+#     # and compare the hashed password with the value stored in the database
+#     htpasswd_file_path = os.environ["CHAINLIT_AUTH_FILE"]
 
-    if check_htpasswd(username, password, htpasswd_file_path):
-        return cl.User(
-            identifier=username, metadata={"role": username}
-        )
-    else:
-        return None
+#     if check_htpasswd(username, password, htpasswd_file_path):
+#         return cl.User(
+#             identifier=username, metadata={"role": username}
+#         )
+#     else:
+#         return None
 
 def update_message_history(new_message):
     global message_history
@@ -81,8 +81,16 @@ async def chat_profile():
             # icon="icon画像のURLを指定します。",
         ),
         cl.ChatProfile(
+            name="Claude-3.5-Sonnet_v2",
+            markdown_description="Amazon Bedrockの**Claude 3.5 Sonnet v2**モデルを使用します。",
+        ),
+        cl.ChatProfile(
             name="Claude-3.5-Sonnet",
             markdown_description="Amazon Bedrockの**Claude 3.5 Sonnet**モデルを使用します。",
+        ),
+        cl.ChatProfile(
+            name="tsuzumi-7b",
+            markdown_description="NTTが開発した日本語が得意な大規模言語モデルです。",
         ),
         cl.ChatProfile(
             name="QA-Search",
@@ -190,8 +198,11 @@ async def main(message: cl.Message):
 
             # VECTOR_SEARCHの場合のみログを保存
             insert_log(message.content, search_result)
-        elif chat_profile == "Claude-3.5-Sonnet":
-            response = generate_bedrock_message(message_history)
+        elif chat_profile == "Claude-3.5-Sonnet" or chat_profile == "Claude-3.5-Sonnet_v2":
+            response = generate_bedrock_message(message_history, chat_profile)
+            response_content = response["content"]
+        elif chat_profile == "tsuzumi-7b":
+            response = generate_tsuzumi_message(message_history)
             response_content = response["content"]
         else:
             response = generate_message(
