@@ -3,7 +3,7 @@ import chainlit as cl
 from chainlit.input_widget import Slider
 from dotenv import load_dotenv
 
-from llm_response import generate_message, generate_bedrock_message, generate_tsuzumi_message, SYSTEM_CONTENT
+from llm_response import generate_message, generate_bedrock_message, generate_tsuzumi_message, SYSTEM_CONTENT, generate_gemini_message
 from vector_search import vector_search, insert_log
 
 from chainlit.input_widget import TextInput
@@ -74,6 +74,10 @@ async def chat_profile():
     """
 
     return [
+        cl.ChatProfile(
+            name="gemini-1.5-flash-002",
+            markdown_description="Googleの**Gemini 1.5 Flash**モデルを使用します。",
+        ),
         cl.ChatProfile(
             name=os.environ["AZURE_GPT_4O_MINI_NAME"],
             # markdown_description="The underlying LLM model is **gpt-4**.",
@@ -203,6 +207,9 @@ async def main(message: cl.Message):
             response_content = response["content"]
         elif chat_profile == "tsuzumi-7b":
             response = generate_tsuzumi_message(message_history)
+            response_content = response["content"]
+        elif chat_profile == "gemini-1.5-flash-002":
+            response = generate_gemini_message(message_history, chat_profile)
             response_content = response["content"]
         else:
             response = generate_message(
