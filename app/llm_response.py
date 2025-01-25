@@ -12,7 +12,8 @@ from vertexai.generative_models import GenerativeModel, GenerationConfig
 
 load_dotenv()
 
-SYSTEM_CONTENT = """あなたはフレンドリーなアシスタントです。質問に答えて下さい。"""
+# SYSTEM_CONTENT = """あなたはフレンドリーなアシスタントです。質問に答えて下さい。"""
+SYSTEM_CONTENT = """あなたはディープラーニング、pythonに詳しいフレンドリーなアシスタントです。質問者は初学者のため、初学者にわかるように答えて下さい。"""
 
 def generate_message(
         messages: List[Dict],
