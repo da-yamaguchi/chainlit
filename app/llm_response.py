@@ -7,6 +7,8 @@ from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from azure.ai.inference import ChatCompletionsClient
 from azure.core.credentials import AzureKeyCredential
+import vertexai
+from vertexai.generative_models import GenerativeModel, GenerationConfig
 
 load_dotenv()
 
@@ -151,3 +153,65 @@ def generate_tsuzumi_message(
             "role": "error",
             "content": f"エラーが発生しました: {str(e)}"
         }
+
+def generate_gemini_message(messages: List[Dict], chat_profile: str):
+    model_name = None
+    if chat_profile == "gemini-1.5-flash-002":
+        vertexai.init(project="peaceful-tome-445213-g5", location="us-central1")
+        model_name = chat_profile
+        # model = GenerativeModel("gemini-1.5-flash-002")
+    # else:
+    #     chat = ChatBedrock(
+    #         model_id="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    #         model_kwargs={"temperature": 0.1, "max_tokens": 4000},
+    #     )
+
+    gemini_contents = []
+    system_instruction = None
+
+    for message in messages:
+        if message["role"] == "system":
+            # システムメッセージは別途保存
+            # system_instruction = {
+            #     "role": "system",
+            #     "parts": [{"text": message["content"]}]
+            # }
+            system_instruction = message["content"]
+        else:
+            gemini_contents.append({
+                "role": "user" if message["role"] == "user" else "model",
+                "parts": [{"text": message["content"]}]
+            })    
+    
+    model = GenerativeModel(model_name=model_name, system_instruction=system_instruction)
+    
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            # request = {
+            #     "contents": gemini_contents,
+            #     "systemInstruction": system_instruction,
+            # }
+            response = model.generate_content(
+                # "What's a good name for a flower shop that specializes in selling bouquets of dried flowers?"
+                # "野球に詳しいですか？"
+                # request
+                gemini_contents,
+                # config=GenerationConfig(
+                #     system_instruction=SYSTEM_CONTENT,
+                # ),                
+            )
+            return {
+                "role": "assistant",
+                "content": response.text
+            }
+        except Exception as e:
+            if "ThrottlingException" in str(e) and attempt < max_retries - 1:
+                wait_time = 2 ** attempt  # 指数バックオフ
+                print(f"リトライ中... (試行回数: {attempt + 1}, 待機時間: {wait_time}秒)")
+                time.sleep(wait_time)
+            else:
+                return {
+                    "role": "error",
+                    "content": f"エラーが発生しました: {str(e)}"
+                }
